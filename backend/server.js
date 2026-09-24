@@ -17,7 +17,8 @@ const __dirname = path.resolve();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    // origin: "http://localhost:5173",
+    origin: "https://video-calling-chat-app-1-fhzr.onrender.com",
     credentials: true, // allow frontend to send cookies
   })
 );
@@ -39,3 +40,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   connectDB();
 });
+
+
+
