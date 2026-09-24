@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 
 import authRoutes from "./routes/auth.route.js";
+import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
 
 import { connectDB } from "./lib/db.js";
@@ -23,7 +24,19 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin
+      // (Postman, server-to-server, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -33,9 +46,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// ================= ROUTES =================
+// ================= API ROUTES =================
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
 // ================= FRONTEND =================
@@ -52,14 +66,17 @@ if (process.env.NODE_ENV === "production") {
 
 // ================= START SERVER =================
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const startServer = async () => {
+  try {
+    await connectDB();
 
-  connectDB()
-    .then(() => {
-      console.log("MongoDB connected successfully");
-    })
-    .catch((error) => {
-      console.error("MongoDB connection failed:", error);
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
     });
-});
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
